@@ -4,20 +4,20 @@ const features = [
   {
     number: '01',
     title: 'Exclusividade',
-    description: 'Drops limitados. Quando acaba, acaba. Cada peça é uma edição que não volta.',
-    accent: 'var(--color-cyan)',
+    description: 'Modelagens autorais e lançamentos selecionados. Cada peça carrega a essência e a identidade da marca.',
+    accent: '#00F0FF', // Neon Cyan
   },
   {
     number: '02',
     title: 'Autenticidade',
-    description: 'Design nascido na rua. Sem tendências genéricas — só o que a cultura dita.',
-    accent: 'var(--color-magenta)',
+    description: 'Design nascido no asfalto. Sem modismos genéricos — pura expressão da cultura urbana.',
+    accent: '#FF007F', // Neon Magenta
   },
   {
     number: '03',
     title: 'Qualidade',
-    description: 'Tecidos premium com acabamento que resiste ao rolê diário. Feito pra durar.',
-    accent: 'var(--color-violet)',
+    description: 'Tecidos de alta gramatura com acabamento reforçado. Feito para aguentar o ritmo do rolê.',
+    accent: '#A855F7', // Neon Violet
   },
 ];
 
@@ -75,14 +75,19 @@ export function Features() {
           font-family: var(--font-display);
           font-size: 3.5rem;
           font-weight: 700;
-          opacity: 0.08;
           margin-bottom: 1rem;
           line-height: 1;
+          letter-spacing: -0.02em;
+          transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        .feature-card:hover .feature-number {
+          transform: translateY(-2px) scale(1.03);
         }
         .feature-title {
           font-family: var(--font-display);
           font-size: 1.4rem;
           margin-bottom: 1rem;
+          color: var(--color-text-primary);
         }
         .feature-desc {
           font-size: 0.9rem;
@@ -102,12 +107,18 @@ export function Features() {
       <section ref={sectionRef} className="features-section">
         <div className="features-grid">
           {features.map((f, i) => (
-            <div key={f.number} className={`feature-card reveal reveal-delay-${i + 1}`}
-              style={{ '--accent': f.accent } as React.CSSProperties}
+            <div
+              key={f.number}
+              className={`feature-card reveal reveal-delay-${i + 1}`}
             >
               <style>{`
                 .feature-card:nth-child(${i + 1})::before {
                   background: ${f.accent};
+                  box-shadow: 0 0 10px ${f.accent};
+                }
+                .feature-card:nth-child(${i + 1}) .feature-number {
+                  color: ${f.accent};
+                  text-shadow: 0 0 12px ${f.accent}AA, 0 0 25px ${f.accent}66;
                 }
               `}</style>
               <div className="feature-number">{f.number}</div>

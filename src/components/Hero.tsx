@@ -20,7 +20,7 @@ const scrollTexts = [
     exitAt: 0.40,
     label: 'Coleção 2026',
     title: 'NOVO\nDROP',
-    body: 'Peças exclusivas em edição limitada.\nQuando acaba, acaba.',
+    body: 'Coleções autorais com caimento impecável.\nFeitas para se destacar no asfalto.',
     accent: 'var(--color-magenta)',
   },
   {
