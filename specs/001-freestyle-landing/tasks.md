@@ -85,3 +85,5 @@
 
 - [X] T019 Code cleanup and refactoring
 - [X] T020 Run quickstart.md validation
+- [X] T021 Add Carousel component with Emil Kowalski spring momentum & drag interactions in src/components/Carousel.tsx
+- [X] T022 Apply Leonxlnx taste-skill high-end minimalist UI styling and Emil Kowalski design engineering principles across all components

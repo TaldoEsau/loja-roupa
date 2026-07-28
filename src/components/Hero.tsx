@@ -1,105 +1,61 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const FRAME_COUNT = 102;
 const FRAME_PREFIX = '/frames/1/Trendy_oversized_hoodie_and_sk_';
 
-// Text cards that appear at specific scroll progress ranges
 const scrollTexts = [
   {
     side: 'left' as const,
-    enterAt: 0.02,
-    exitAt: 0.18,
     label: 'Freestyle Store',
     title: 'CULTURE\nIN MOTION',
     body: 'Uma marca que nasceu no rolê.',
     accent: '#00F0FF',
+    start: 0.02, end: 0.18
   },
   {
     side: 'right' as const,
-    enterAt: 0.22,
-    exitAt: 0.40,
     label: 'Coleção 2026',
     title: 'NOVO\nDROP',
     body: 'Coleções autorais com caimento impecável.\nFeitas para se destacar no asfalto.',
     accent: '#FF007F',
+    start: 0.22, end: 0.40
   },
   {
     side: 'left' as const,
-    enterAt: 0.44,
-    exitAt: 0.62,
     label: 'Qualidade Premium',
     title: 'FEITO PRA\nDURAR',
     body: 'Tecidos premium com acabamento que\nresiste ao rolê diário.',
     accent: '#C084FC',
+    start: 0.44, end: 0.62
   },
   {
     side: 'right' as const,
-    enterAt: 0.66,
-    exitAt: 0.84,
     label: 'Streetwear × Skate',
     title: 'ESTILO\nDE RUA',
     body: 'Design autêntico nascido no asfalto.\nSem tendências genéricas.',
     accent: '#00F0FF',
-  },
-  {
-    side: 'center' as const,
-    enterAt: 0.86,
-    exitAt: 0.98,
-    label: '',
-    title: '',
-    body: '',
-  },
-];
-
-// Compute opacity and transform based on scroll progress
-function getTextStyle(progress: number, enterAt: number, exitAt: number, side: 'left' | 'right' | 'center') {
-  const fadeInDuration = 0.06;
-  const fadeOutDuration = 0.06;
-  const fadeInEnd = enterAt + fadeInDuration;
-  const fadeOutStart = exitAt - fadeOutDuration;
-
-  let opacity = 0;
-  let translateX = 0;
-  let translateY = 0;
-
-  if (progress < enterAt || progress > exitAt) {
-    opacity = 0;
-    translateX = side === 'left' ? -60 : side === 'right' ? 60 : 0;
-    translateY = side === 'center' ? 40 : 0;
-  } else if (progress < fadeInEnd) {
-    // Fading in
-    const t = (progress - enterAt) / fadeInDuration;
-    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-    opacity = eased;
-    translateX = side === 'left' ? -60 * (1 - eased) : side === 'right' ? 60 * (1 - eased) : 0;
-    translateY = side === 'center' ? 40 * (1 - eased) : 0;
-  } else if (progress > fadeOutStart) {
-    // Fading out
-    const t = (progress - fadeOutStart) / fadeOutDuration;
-    const eased = 1 - Math.pow(t, 3); // ease-in cubic
-    opacity = eased;
-    translateX = side === 'left' ? -60 * (1 - eased) : side === 'right' ? 60 * (1 - eased) : 0;
-    translateY = side === 'center' ? -30 * (1 - eased) : 0;
-  } else {
-    // Fully visible
-    opacity = 1;
-    translateX = 0;
-    translateY = 0;
+    start: 0.66, end: 0.84
   }
-
-  return { opacity, translateX, translateY };
-}
+];
 
 export function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+
   const [loadProgress, setLoadProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const rafRef = useRef<number>(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  // Preload all images
+  
+  // Canvas render logic
   useEffect(() => {
     let loaded = 0;
     const images: HTMLImageElement[] = [];
@@ -148,27 +104,23 @@ export function Hero() {
     }
   }, []);
 
-  // Refs for smooth LERP animation
   const targetFrameRef = useRef(0);
   const renderedFrameRef = useRef(0);
   const lastDrawnFrameRef = useRef(-1);
 
-  // 60 FPS LERP Render Loop (creates fluid inertia)
   useEffect(() => {
     if (!isLoaded) return;
 
     drawFrame(0);
 
     const render = () => {
-      // Smoothly interpolate renderedFrame towards targetFrame
       const diff = targetFrameRef.current - renderedFrameRef.current;
       if (Math.abs(diff) > 0.001) {
-        renderedFrameRef.current += diff * 0.08; // 0.08 = fluid inertia
+        renderedFrameRef.current += diff * 0.08;
       } else {
         renderedFrameRef.current = targetFrameRef.current;
       }
 
-      // Redraw canvas only when the rounded integer frame changes
       const discreteFrame = Math.round(renderedFrameRef.current);
       if (discreteFrame !== lastDrawnFrameRef.current) {
         drawFrame(discreteFrame);
@@ -180,38 +132,71 @@ export function Hero() {
 
     rafRef.current = requestAnimationFrame(render);
 
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, [isLoaded, drawFrame]);
-
-  // Scroll listener: updates target frame & progress
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current || !isLoaded) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      const scrollableHeight = containerRef.current.offsetHeight - window.innerHeight;
-      const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(scrolled / scrollableHeight, 1));
-
-      setScrollProgress(progress);
-      targetFrameRef.current = progress * (FRAME_COUNT - 1);
-    };
-
     const handleResize = () => {
       drawFrame(Math.max(0, lastDrawnFrameRef.current));
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize);
-    handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafRef.current);
       window.removeEventListener('resize', handleResize);
     };
   }, [isLoaded, drawFrame]);
+
+  // GSAP ScrollTrigger Timeline
+  useGSAP(() => {
+    if (!isLoaded || !containerRef.current) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1, // Smooth scrubbing
+        onUpdate: (self) => {
+          targetFrameRef.current = self.progress * (FRAME_COUNT - 1);
+          if (progressBarRef.current) {
+            progressBarRef.current.style.width = `${self.progress * 100}%`;
+          }
+          if (scrollIndicatorRef.current) {
+            scrollIndicatorRef.current.style.opacity = self.progress < 0.02 ? '0.5' : '0';
+          }
+        },
+      },
+    });
+
+    // Setup initial states for cards
+    cardsRef.current.forEach((card, i) => {
+      if (!card) return;
+      const data = scrollTexts[i];
+      const startX = data.side === 'left' ? -60 : 60;
+      
+      gsap.set(card, { opacity: 0, x: startX, y: 0 });
+
+      // Calculate total scroll distance to map timings correctly
+      const durationInTimeline = data.end - data.start;
+      const transitionRatio = 0.2; // 20% of its lifespan is fading in/out
+      
+      const fadeInDuration = durationInTimeline * transitionRatio;
+      const solidDuration = durationInTimeline * (1 - transitionRatio * 2);
+
+      tl.to(card, {
+        opacity: 1,
+        x: 0,
+        ease: 'power2.out',
+        duration: fadeInDuration
+      }, data.start);
+
+      tl.to(card, {
+        opacity: 0,
+        x: startX,
+        y: -30,
+        ease: 'power2.in',
+        duration: fadeInDuration
+      }, data.start + fadeInDuration + solidDuration);
+    });
+
+  }, { dependencies: [isLoaded], scope: containerRef });
 
   return (
     <>
@@ -230,10 +215,6 @@ export function Hero() {
         .hero-text-card.right {
           right: clamp(2rem, 6vw, 8rem);
           text-align: right;
-        }
-        .hero-text-card.center {
-          left: 50%;
-          text-align: center;
         }
         .hero-text-label {
           font-family: var(--font-accent);
@@ -272,10 +253,6 @@ export function Hero() {
         .hero-text-card.right .hero-text-accent-line {
           margin-left: auto;
         }
-        .hero-text-card.center .hero-text-accent-line {
-          margin-left: auto;
-          margin-right: auto;
-        }
         .scroll-indicator {
           position: absolute;
           bottom: 3rem;
@@ -301,7 +278,6 @@ export function Hero() {
           height: 40px;
           background: linear-gradient(to bottom, var(--color-cyan), transparent);
         }
-        /* Progress bar */
         .hero-progress {
           position: absolute;
           bottom: 0;
@@ -309,7 +285,6 @@ export function Hero() {
           height: 2px;
           background: var(--color-cyan);
           z-index: 20;
-          transition: width 0.05s linear;
           box-shadow: var(--shadow-glow-cyan);
         }
         @media (max-width: 768px) {
@@ -328,7 +303,6 @@ export function Hero() {
           width: '100%',
         }}
       >
-        {/* Sticky viewport */}
         <div
           style={{
             position: 'sticky',
@@ -340,7 +314,6 @@ export function Hero() {
             backgroundColor: 'var(--color-pitch-black)',
           }}
         >
-          {/* Canvas */}
           <canvas
             ref={canvasRef}
             style={{
@@ -352,7 +325,6 @@ export function Hero() {
             }}
           />
 
-          {/* Vignette */}
           <div style={{
             position: 'absolute',
             inset: 0,
@@ -361,7 +333,6 @@ export function Hero() {
             zIndex: 2,
           }} />
 
-          {/* Bottom gradient */}
           <div style={{
             position: 'absolute',
             bottom: 0,
@@ -373,52 +344,35 @@ export function Hero() {
             zIndex: 3,
           }} />
 
-          {/* Scroll-driven text overlays */}
-          {scrollTexts.map((item, i) => {
-            const style = getTextStyle(scrollProgress, item.enterAt, item.exitAt, item.side);
-            const isCenter = item.side === 'center';
-
-            return (
+          {scrollTexts.map((item, i) => (
+            <div
+              key={i}
+              ref={el => { cardsRef.current[i] = el; }}
+              className={`hero-text-card ${item.side}`}
+            >
+              <p className="hero-text-label" style={{ color: item.accent }}>
+                {item.label}
+              </p>
               <div
-                key={i}
-                className={`hero-text-card ${item.side}`}
-                style={{
-                  opacity: style.opacity,
-                  transform: isCenter
-                    ? `translate(-50%, -50%) translate(0px, ${style.translateY}px)`
-                    : `translateY(-50%) translate(${style.translateX}px, ${style.translateY}px)`,
-                }}
-              >
-                {item.label && (
-                  <p className="hero-text-label" style={{ color: item.accent }}>
-                    {item.label}
-                  </p>
-                )}
-                <div
-                  className="hero-text-accent-line"
-                  style={{ background: item.accent }}
-                />
-                <h2 className="hero-text-title">{item.title}</h2>
-                {item.body && (
-                  <p className="hero-text-body">{item.body}</p>
-                )}
-              </div>
-            );
-          })}
+                className="hero-text-accent-line"
+                style={{ background: item.accent }}
+              />
+              <h2 className="hero-text-title">{item.title}</h2>
+              <p className="hero-text-body">{item.body}</p>
+            </div>
+          ))}
 
-          {/* Scroll indicator — fades out after scrolling starts */}
           <div
+            ref={scrollIndicatorRef}
             className="scroll-indicator"
-            style={{ opacity: scrollProgress < 0.02 ? 0.5 : 0 }}
+            style={{ opacity: 0.5 }}
           >
             <span className="scroll-indicator-text">Scroll para explorar</span>
             <div className="scroll-indicator-line" />
           </div>
 
-          {/* Scroll progress bar at bottom */}
-          <div className="hero-progress" style={{ width: `${scrollProgress * 100}%` }} />
+          <div ref={progressBarRef} className="hero-progress" style={{ width: '0%' }} />
 
-          {/* Loading overlay */}
           {!isLoaded && (
             <div style={{
               position: 'absolute',

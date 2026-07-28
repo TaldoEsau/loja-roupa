@@ -32,29 +32,33 @@ export function Footer() {
     }
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <style>{`
         .footer {
           position: relative;
-          padding: 8rem 2rem 2rem;
-          border-top: 1px solid var(--color-border-subtle);
+          padding: 8rem 2rem 3rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           overflow: hidden;
+          background: #08080A;
         }
         .footer::before {
           content: '';
           position: absolute;
-          bottom: 0;
+          bottom: -200px;
           left: 50%;
           transform: translateX(-50%);
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, var(--color-cyan-glow) 0%, transparent 70%);
+          width: 800px;
+          height: 500px;
+          background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.08) 0%, transparent 70%);
           pointer-events: none;
-          opacity: 0.3;
         }
         .footer-inner {
-          max-width: 1200px;
+          max-width: 1400px;
           margin: 0 auto;
           position: relative;
           z-index: 1;
@@ -67,70 +71,80 @@ export function Footer() {
         }
         .footer-brand-name {
           font-family: var(--font-display);
-          font-size: 1.5rem;
+          font-size: 1.8rem;
           letter-spacing: 0.15em;
-          margin-bottom: 1.5rem;
+          color: #FFFFFF;
+          margin-bottom: 1.25rem;
         }
         .footer-desc {
-          color: var(--color-text-secondary);
-          font-size: 0.9rem;
+          color: #A1A1AA;
+          font-size: 0.95rem;
           line-height: 1.7;
           margin-bottom: 2rem;
-          max-width: 380px;
+          max-width: 400px;
         }
         .newsletter-form {
           display: flex;
           gap: 0;
-          border: 1px solid var(--color-border);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           overflow: hidden;
-          transition: border-color 0.3s ease;
+          transition: border-color 200ms ease, box-shadow 200ms ease;
+          background: rgba(255, 255, 255, 0.03);
         }
         .newsletter-form:focus-within {
-          border-color: var(--color-cyan);
+          border-color: #00F0FF;
+          box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
         }
         .newsletter-input {
           flex: 1;
           background: transparent;
           border: none;
-          color: var(--color-text-primary);
+          color: #FFFFFF;
           padding: 0.9rem 1.2rem;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           font-family: var(--font-body);
           outline: none;
         }
         .newsletter-input::placeholder {
-          color: var(--color-text-muted);
+          color: #71717A;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           font-size: 0.7rem;
         }
         .newsletter-btn {
-          background: var(--color-cyan);
-          color: var(--color-pitch-black-pure);
+          background: #00F0FF;
+          color: #080808;
           padding: 0 1.8rem;
           font-family: var(--font-accent);
-          font-size: 0.7rem;
-          font-weight: 600;
+          font-size: 0.72rem;
+          font-weight: 700;
           letter-spacing: 0.15em;
           text-transform: uppercase;
-          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                      background 200ms ease;
         }
         .newsletter-btn:hover {
-          background: var(--color-text-primary);
+          background: #FFFFFF;
+        }
+        .newsletter-btn:active {
+          transform: scale(0.94);
         }
         .newsletter-success {
           font-size: 0.8rem;
-          color: var(--color-cyan);
+          color: #00F0FF;
           margin-top: 0.75rem;
           font-family: var(--font-accent);
           letter-spacing: 0.1em;
         }
         .footer-heading {
           font-family: var(--font-accent);
-          font-size: 0.65rem;
+          font-size: 0.7rem;
+          font-weight: 700;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          color: var(--color-text-muted);
+          color: #00F0FF;
           margin-bottom: 1.5rem;
         }
         .footer-links {
@@ -140,41 +154,66 @@ export function Footer() {
         }
         .footer-link {
           font-size: 0.95rem;
-          color: var(--color-text-secondary);
-          transition: all 0.3s ease;
+          color: #A1A1AA;
+          text-decoration: none;
+          transition: color 200ms ease, transform 200ms ease;
         }
         .footer-link:hover {
-          color: var(--color-text-primary);
-          padding-left: 8px;
+          color: #FFFFFF;
+          transform: translateX(6px);
         }
         .footer-bottom {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-top: 2rem;
-          border-top: 1px solid var(--color-border-subtle);
+          padding-top: 2.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 1.5rem;
         }
         .footer-copy {
           font-size: 0.75rem;
-          color: var(--color-text-muted);
+          color: #71717A;
           font-family: var(--font-accent);
           letter-spacing: 0.05em;
         }
         .footer-socials {
           display: flex;
           gap: 1.5rem;
+          align-items: center;
         }
         .footer-social {
           font-family: var(--font-accent);
           font-size: 0.75rem;
-          letter-spacing: 0.1em;
-          color: var(--color-text-muted);
+          letter-spacing: 0.15em;
+          color: #A1A1AA;
           text-transform: uppercase;
-          transition: color 0.3s ease;
+          text-decoration: none;
+          transition: color 200ms ease;
         }
-        .footer-social:hover { color: var(--color-cyan); }
+        .footer-social:hover { color: #00F0FF; }
+        .back-to-top {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #FFFFFF;
+          font-family: var(--font-accent);
+          font-size: 0.7rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          padding: 0.6rem 1.2rem;
+          border-radius: 9999px;
+          cursor: pointer;
+          transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                      border-color 200ms ease,
+                      color 200ms ease;
+        }
+        .back-to-top:hover {
+          border-color: #00F0FF;
+          color: #00F0FF;
+        }
+        .back-to-top:active {
+          transform: scale(0.93);
+        }
         @media (max-width: 768px) {
           .footer-top {
             grid-template-columns: 1fr;
@@ -188,7 +227,7 @@ export function Footer() {
         <div className="footer-inner">
           <div className="footer-top">
             <div className="reveal">
-              <h2 className="footer-brand-name">Freestyle Store</h2>
+              <h2 className="footer-brand-name">FREESTYLE STORE</h2>
               <p className="footer-desc">
                 Junte-se ao movimento. Cadastre-se para receber acesso antecipado a novos drops e conteúdos exclusivos.
               </p>
@@ -215,6 +254,7 @@ export function Footer() {
               <div className="footer-links">
                 <a href="#novo-drop" className="footer-link">Novo Drop</a>
                 <a href="#o-conceito" className="footer-link">O Conceito</a>
+                <a href="#destaques" className="footer-link">Destaques</a>
                 <a href="#lookbook" className="footer-link">Lookbook</a>
                 <a href="#contato" className="footer-link">Contato</a>
               </div>
@@ -239,6 +279,9 @@ export function Footer() {
               <a href="#" className="footer-social">Instagram</a>
               <a href="#" className="footer-social">TikTok</a>
               <a href="#" className="footer-social">YouTube</a>
+              <button className="back-to-top" onClick={scrollToTop}>
+                Topo ↑
+              </button>
             </div>
           </div>
         </div>
