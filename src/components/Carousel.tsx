@@ -80,7 +80,7 @@ const items: CarouselItem[] = [
     category: 'Outerwear',
     price: 'R$ 289,90',
     tag: 'Limitado',
-    img: 'https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?auto=format&fit=crop&q=80&w=800&h=1000',
+    img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800&h=1000',
     accent: '#FF007F',
   },
 ];
