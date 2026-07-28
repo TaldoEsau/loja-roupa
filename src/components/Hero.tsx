@@ -12,7 +12,7 @@ const scrollTexts = [
     label: 'Freestyle Store',
     title: 'CULTURE\nIN MOTION',
     body: 'Uma marca que nasceu no rolê.',
-    accent: 'var(--color-cyan)',
+    accent: '#00F0FF',
   },
   {
     side: 'right' as const,
@@ -21,7 +21,7 @@ const scrollTexts = [
     label: 'Coleção 2026',
     title: 'NOVO\nDROP',
     body: 'Coleções autorais com caimento impecável.\nFeitas para se destacar no asfalto.',
-    accent: 'var(--color-magenta)',
+    accent: '#FF007F',
   },
   {
     side: 'left' as const,
@@ -30,7 +30,7 @@ const scrollTexts = [
     label: 'Qualidade Premium',
     title: 'FEITO PRA\nDURAR',
     body: 'Tecidos premium com acabamento que\nresiste ao rolê diário.',
-    accent: 'var(--color-violet)',
+    accent: '#C084FC',
   },
   {
     side: 'right' as const,
@@ -39,16 +39,15 @@ const scrollTexts = [
     label: 'Streetwear × Skate',
     title: 'ESTILO\nDE RUA',
     body: 'Design autêntico nascido no asfalto.\nSem tendências genéricas.',
-    accent: 'var(--color-cyan)',
+    accent: '#00F0FF',
   },
   {
     side: 'center' as const,
     enterAt: 0.86,
     exitAt: 0.98,
     label: '',
-    title: 'EXPLORE\nTHE DROP',
+    title: '',
     body: '',
-    accent: 'var(--color-cyan)',
   },
 ];
 
@@ -97,7 +96,6 @@ export function Hero() {
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const [loadProgress, setLoadProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const currentFrameRef = useRef(0);
   const rafRef = useRef<number>(0);
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -150,7 +148,44 @@ export function Hero() {
     }
   }, []);
 
-  // Scroll-driven frame update
+  // Refs for smooth LERP animation
+  const targetFrameRef = useRef(0);
+  const renderedFrameRef = useRef(0);
+  const lastDrawnFrameRef = useRef(-1);
+
+  // 60 FPS LERP Render Loop (creates fluid inertia)
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    drawFrame(0);
+
+    const render = () => {
+      // Smoothly interpolate renderedFrame towards targetFrame
+      const diff = targetFrameRef.current - renderedFrameRef.current;
+      if (Math.abs(diff) > 0.001) {
+        renderedFrameRef.current += diff * 0.08; // 0.08 = fluid inertia
+      } else {
+        renderedFrameRef.current = targetFrameRef.current;
+      }
+
+      // Redraw canvas only when the rounded integer frame changes
+      const discreteFrame = Math.round(renderedFrameRef.current);
+      if (discreteFrame !== lastDrawnFrameRef.current) {
+        drawFrame(discreteFrame);
+        lastDrawnFrameRef.current = discreteFrame;
+      }
+
+      rafRef.current = requestAnimationFrame(render);
+    };
+
+    rafRef.current = requestAnimationFrame(render);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [isLoaded, drawFrame]);
+
+  // Scroll listener: updates target frame & progress
   useEffect(() => {
     const handleScroll = () => {
       if (!containerRef.current || !isLoaded) return;
@@ -159,24 +194,22 @@ export function Hero() {
       const scrollableHeight = containerRef.current.offsetHeight - window.innerHeight;
       const scrolled = -rect.top;
       const progress = Math.max(0, Math.min(scrolled / scrollableHeight, 1));
-      const frameIndex = Math.round(progress * (FRAME_COUNT - 1));
 
       setScrollProgress(progress);
+      targetFrameRef.current = progress * (FRAME_COUNT - 1);
+    };
 
-      if (frameIndex !== currentFrameRef.current) {
-        currentFrameRef.current = frameIndex;
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = requestAnimationFrame(() => drawFrame(frameIndex));
-      }
+    const handleResize = () => {
+      drawFrame(Math.max(0, lastDrawnFrameRef.current));
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', () => drawFrame(currentFrameRef.current));
+    window.addEventListener('resize', handleResize);
     handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('resize', handleResize);
     };
   }, [isLoaded, drawFrame]);
 
@@ -187,7 +220,7 @@ export function Hero() {
           position: absolute;
           z-index: 10;
           top: 50%;
-          max-width: 380px;
+          max-width: 400px;
           pointer-events: none;
           will-change: transform, opacity;
         }
@@ -204,33 +237,37 @@ export function Hero() {
         }
         .hero-text-label {
           font-family: var(--font-accent);
-          font-size: 0.65rem;
+          font-size: 0.75rem;
+          font-weight: 700;
           letter-spacing: 0.35em;
           text-transform: uppercase;
-          margin-bottom: 1rem;
+          margin-bottom: 0.75rem;
+          text-shadow: 0 0 12px currentColor, 0 2px 10px rgba(0,0,0,0.9);
         }
         .hero-text-title {
           font-family: var(--font-display);
           font-size: clamp(2.5rem, 5vw, 4.5rem);
           font-weight: 700;
           line-height: 1.05;
-          color: var(--color-text-primary);
-          margin-bottom: 1.25rem;
-          text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+          color: #FFFFFF;
+          margin-bottom: 1rem;
+          text-shadow: 0 4px 20px rgba(0,0,0,0.95), 0 0 35px rgba(0,0,0,0.9);
           white-space: pre-line;
         }
         .hero-text-body {
           font-family: var(--font-body);
-          font-size: 0.9rem;
+          font-size: 0.95rem;
+          font-weight: 500;
           line-height: 1.6;
-          color: var(--color-text-secondary);
+          color: #F4F4F5;
           white-space: pre-line;
-          text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+          text-shadow: 0 2px 12px rgba(0,0,0,0.95), 0 0 25px rgba(0,0,0,0.9);
         }
         .hero-text-accent-line {
-          height: 2px;
+          height: 3px;
           width: 50px;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1rem;
+          box-shadow: 0 0 12px currentColor;
         }
         .hero-text-card.right .hero-text-accent-line {
           margin-left: auto;
