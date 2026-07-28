@@ -528,17 +528,37 @@ export function ProductGrid() {
         }
 
         @media (max-width: 768px) {
+          .product-modal-backdrop {
+            padding: 0;
+            align-items: flex-end;
+          }
           .product-modal-content {
             flex-direction: column;
             height: 90vh;
             max-height: none;
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            animation: sheetSlideUp 350ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
           }
           .product-modal-img-wrap {
-            height: 35vh;
+            height: 42vh;
             flex: none;
           }
           .product-modal-info {
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
+          }
+          .product-modal-close {
+            top: 1rem;
+            right: 1rem;
+            background: rgba(8, 8, 8, 0.6);
+            backdrop-filter: blur(8px);
+          }
+          
+          @keyframes sheetSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
           }
         }
       `}</style>
